@@ -16,7 +16,7 @@ from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationTo
 from matplotlib.figure import Figure
 from math import factorial
 import numpy as np
-from calculate_psi import *   # 导入原有函数
+from calculate_psi import *   
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
