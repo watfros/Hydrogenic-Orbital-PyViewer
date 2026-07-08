@@ -127,26 +127,30 @@ class RunThread(QThread):
         self.m = m
         # self.plane xyz = planexyz
         self.pi = np.pi
-        self.a = 5.291772108e-11  # Bohr radius
-        self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        #a0 = 5.291772108e-11  # Bohr radius
+        #self.r = np.linspace(0.0, a0 * (5 * self.n ** 1.65), 181)
         # self.plt = plt
         # self.plt.axes.clear()
 
     def run(self):
         mlab.clf(figure=None)
-        x, y, z = np.ogrid[-self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j,
-                  -self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j,
-                  -self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j]
-        r, Theta, Phi = cart2sph(x, y, z)
-        x, y, z = sph2cart(r, Theta, Phi)  # Convert again to maintain appropriate dimensions for xyz and psi
-
+        
+        
+        
+#        x, y, z = np.ogrid[-a0 * (5 * self.n ** 1.65):a0 * (5 * self.n ** 1.65):168j,
+#                  -a0 * (5 * self.n ** 1.65):a0 * (5 * self.n ** 1.65):168j,
+#                  -a0 * (5 * self.n ** 1.65):a0 * (5 * self.n ** 1.65):168j]
+#        r, Theta, Phi = cart2sph(x, y, z)
+#        x, y, z = sph2cart(r, Theta, Phi)  # Convert again to maintain appropriate dimensions for xyz and psi
 #        A = np.sqrt(
 #            ((2 * self.l + 1) * factorial(self.l - abs(self.m))) / (4 * self.pi * factorial(self.l + abs(self.m))))
-
         # print('A')
         # print(A)
 
-        scalars = calc_psi_prof(r, Theta, Phi, self.n, self.l, self.m)
+        Rmax = a0 * (5 * self.n ** R_EXP)
+        x, y, z = np.mgrid[-Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j]
+        r, Theta, Phi = cart2sph(x, y, z)
+        scalars = calc_psi(r, Theta, Phi, self.n, self.l, self.m)
 
         # print('scalars')
         # print(scalars)
@@ -175,15 +179,12 @@ class RunThread(QThread):
             mlab.contour3d(x, y, z, scalars, contours=[0], opacity=0.2, transparent=True, color=(0.5,0.5,0.0))
         
         if self.l == 0:
-            x, y, z = np.ogrid[0:self.a * (10 * self.n ** 1.65):168j,
-                      -self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j,
-                      -self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j]
+            x, y, z = np.mgrid[0:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j]
             r, Theta, Phi = cart2sph(x, y, z)
-            x, y, z = sph2cart(r, Theta, Phi)
-            x = x + self.a * (10 * self.n ** 1.65)
+            x = x + 2 * Rmax
 #            A = np.sqrt(
 #                ((2 * self.l + 1) * factorial(self.l - abs(self.m))) / (4 * self.pi * factorial(self.l + abs(self.m))))
-            scalars = calc_psi_prof(r, Theta, Phi, self.n, self.l, self.m)
+            scalars = calc_psi(r, Theta, Phi, self.n, self.l, self.m)
             maxpsi = np.abs(np.max(scalars))
             minpsi = np.abs(np.min(scalars))
             if self.n == 1:
@@ -192,11 +193,11 @@ class RunThread(QThread):
                 limpsi = np.minimum(maxpsi, minpsi)
 
             if self.n == 1:
-                mlab.contour3d(x - self.a * (10 * self.n ** 1.65), y + self.a * (10 * self.n ** 1.65), z, scalars,
+                mlab.contour3d(x - 2 * Rmax, y + 2 * Rmax, z, scalars,
                                contours=[0.1 * limpsi],
                                transparent=False, vmax=0.1 * limpsi, vmin=-0.1 * limpsi)
             else:
-                mlab.contour3d(x - self.a * (10 * self.n ** 1.65), y + self.a * (10 * self.n ** 1.65), z, scalars,
+                mlab.contour3d(x - 2 * Rmax, y + 2 * Rmax, z, scalars,
                                contours=[-0.1 * limpsi, 0.1 * limpsi], transparent=False, vmax=0.1 * limpsi,
                                vmin=-0.1 * limpsi)
 
@@ -294,9 +295,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def start():
-    App = QApplication(sys.argv)
+    # 获取或创建 QApplication 实例（确保全局唯一）
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()   # 阻塞直到所有窗口关闭，但不调用 sys.exit
+    mlab.close(all=True)          # 窗口关闭后再清理一次
+    
 if __name__ == "__main__":
     start()

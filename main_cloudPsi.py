@@ -127,40 +127,30 @@ class RunThread(QThread):
         self.m = m
         # self.plane xyz = planexyz
         self.pi = np.pi
-        self.a = 5.291772108e-11  # Bohr radius
-        self.A = np.sqrt(
-            ((2 * l + 1) * factorial(l - abs(m))) / (4 * self.pi * factorial(l + abs(m))))  # Normalization constant
-        self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        #a0 = 5.291772108e-11  # Bohr radius
+        #self.A = np.sqrt(
+        #    ((2 * l + 1) * factorial(l - abs(m))) / (4 * self.pi * factorial(l + abs(m))))  # Normalization constant
+        #self.r = np.linspace(0.0, a0 * (5 * self.n ** 1.65), 181)
         # self.plt = plt
         # self.plt.axes.clear()
 
     def run(self):
         mlab.clf(figure=None)
-        x, y, z = np.ogrid[-8 * self.a * self.n:8 * self.a * self.n:168j, -8 * self.a * self.n:8 * self.a * self.n:168j, -8 * self.a * self.n:8 * self.a * self.n:168j]
-        ngrid = 168
+        Rmax = a0 * (5 * self.n ** R_EXP)
+        x, y, z = np.mgrid[-Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j]
         r, Theta, Phi = cart2sph(x, y, z)
-
         scalars = calc_psi(r, Theta, Phi, self.n, self.l, self.m)
-
+        #GRID_3D = 168
         # print('scalars')
         # print(scalars)
-        x1, y1, z1 = sph2cart(r, Theta, Phi)  # Convert again to maintain appropriate dimensions for xyz and psi
         if self.n != 1:  # Set interface except for 1s orbital
-            mlab.contour3d(x1, y1, z1, scalars, contours=[0], opacity=0.2, transparent=True, color=(0.5, 0.5, 0.0))
+            mlab.contour3d(x, y, z, scalars, contours=[0], opacity=0.2, transparent=True, color=(0.5, 0.5, 0.0))
         sca_aver = np.average(abs(scalars))
         sca_aver = 500 * sca_aver ** 2
 
-        rand1 = np.random.rand(ngrid * ngrid * ngrid) - 0.5
-        rand2 = rand1.reshape([ngrid, ngrid, ngrid])
-        x = x + rand2 * self.a
-
-        rand1 = np.random.rand(ngrid * ngrid * ngrid) - 0.5
-        rand2 = rand1.reshape([ngrid, ngrid, ngrid])
-        y = y + rand2 * self.a
-
-        rand1 = np.random.rand(ngrid * ngrid * ngrid) - 0.5
-        rand2 = rand1.reshape([ngrid, ngrid, ngrid])
-        z = z + rand2 * self.a
+        x += (np.random.rand(GRID_3D, GRID_3D, GRID_3D) - 0.5) * a0
+        y += (np.random.rand(GRID_3D, GRID_3D, GRID_3D) - 0.5) * a0
+        z += (np.random.rand(GRID_3D, GRID_3D, GRID_3D) - 0.5) * a0
 
         # Get and display the first time point
         time1 = datetime.now()
@@ -168,7 +158,7 @@ class RunThread(QThread):
         print(f"Start time: {time1_str}")
 	    
         ###Original time-consuming code
-        #arr = np.zeros((ngrid,ngrid,ngrid), dtype=bool)
+        #arr = np.zeros((GRID_3D,GRID_3D,GRID_3D), dtype=bool)
 	    #
         #for i in range(len(scalars)):
         #    for j in range(len(scalars[i])):
@@ -178,8 +168,8 @@ class RunThread(QThread):
         #                else:
         #                    arr[i][j][k]=True
         
-        ###New code
-        rand_sca = np.random.rand(ngrid, ngrid, ngrid)
+        ###New code, mask the points
+        rand_sca = np.random.rand(GRID_3D, GRID_3D, GRID_3D)
         arr = np.square(scalars) > sca_aver * rand_sca
         
 	    # Get and display the second time point
@@ -194,7 +184,7 @@ class RunThread(QThread):
         x = x[arr]
         y = y[arr]
         z = z[arr]
-        scalars = scalars / abs(scalars)
+        scalars = np.sign(scalars) # scalars = scalars / abs(scalars)
 
         mlab.points3d(x, y, z, scalars, mode='point')  # , colormap="blue-red"
         # mlab.colorbar()
@@ -288,9 +278,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def start():
-    App = QApplication(sys.argv)
+    # 获取或创建 QApplication 实例（确保全局唯一）
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()   # 阻塞直到所有窗口关闭，但不调用 sys.exit
+    mlab.close(all=True)          # 窗口关闭后再清理一次
+
 if __name__ == "__main__":
     start()

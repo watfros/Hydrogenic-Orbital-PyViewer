@@ -119,9 +119,9 @@ class RunThread(QThread):
         self.n = n
         self.l = l
         self.pi = np.pi
-        self.a = 5.291772108e-11
+        #a0 = 5.291772108e-11
 
-        self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        self.r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
         self.plt = plt
         self.plt.fig.clear()
         self.ngrid = 100
@@ -201,13 +201,13 @@ class RunThread(QThread):
 
     def plot_R(self):
         # R = np.sqrt(X**2 + Y**2 + Z**2)
-        R = np.linspace(0.0, self.a * (5 * self.n ** 1.65), self.n * self.ngrid)
-        rho = 2.0 * R / self.n / self.a
-        C = np.sqrt((2.0 / self.n / self.a) ** 3 * factorial(self.n - self.l - 1) / (
+        R = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), self.n * self.ngrid)
+        rho = 2.0 * R / self.n / a0
+        C = np.sqrt((2.0 / self.n / a0) ** 3 * factorial(self.n - self.l - 1) / (
                     2 * self.n * factorial(self.n + self.l) ** 3))
         f = np.exp(-rho / 2) * rho ** self.l * associatedLaguerre(self.l, self.n, rho)
         f = f * C
-        R = R / self.a
+        R = R / a0
         if self.t == 1:
             ax1 = self.plt.fig.add_subplot(2, 1, 1)
         if self.t == 2:
@@ -240,16 +240,16 @@ class RunThread(QThread):
     def plot_R2(self):
         #        fig = plt.figure()
         # R = np.sqrt(X**2 + Y**2 + Z**2)
-        R = np.linspace(0.0, self.a * (5 * self.n ** 1.65), self.n * self.ngrid)
-        rho = 2.0 * R / self.n / self.a
-        C = np.sqrt((2.0 / self.n / self.a) ** 3 * factorial(self.n - self.l - 1) / (
+        R = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), self.n * self.ngrid)
+        rho = 2.0 * R / self.n / a0
+        C = np.sqrt((2.0 / self.n / a0) ** 3 * factorial(self.n - self.l - 1) / (
                     2 * self.n * factorial(self.n + self.l) ** 3))
         f = np.exp(-rho / 2) * rho ** self.l * associatedLaguerre(self.l, self.n, rho)
         f = f * C
         f = f ** 2
         f_max = np.max(f)
         f = self.n * f / f_max
-        R = R / self.a
+        R = R / a0
         if self.t == 1:
             ax2 = self.plt.fig.add_subplot(2, 1, 1)
         if self.t == 2:
@@ -291,14 +291,14 @@ class RunThread(QThread):
         #        fig = plt.figure()
 
         # R = np.sqrt(X**2 + Y**2 + Z**2)
-        R = np.linspace(0.0, self.a * (5 * self.n ** 1.65), self.n * self.ngrid)
-        rho = 2.0 * R / self.n / self.a
-        C = np.sqrt((2.0 / self.n / self.a) ** 3 * factorial(self.n - self.l - 1) / (
+        R = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), self.n * self.ngrid)
+        rho = 2.0 * R / self.n / a0
+        C = np.sqrt((2.0 / self.n / a0) ** 3 * factorial(self.n - self.l - 1) / (
                     2 * self.n * factorial(self.n + self.l) ** 3))
         f = np.exp(-rho / 2) * rho ** self.l * associatedLaguerre(self.l, self.n, rho)
         f = f * C
         f = R ** 2 * f ** 2
-        R = R / self.a
+        R = R / a0
         if self.t == 1:
             ax3 = self.plt.fig.add_subplot(2, 1, 1)
         if self.t == 2:
@@ -393,12 +393,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def msg(self, msg):
         QMessageBox.about(self, "Error", msg)
 
-
 def start(i, j, k):
-    App = QApplication(sys.argv)
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow(i, j, k)
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()
 
 if __name__ == "__main__":
     # Configure functions to plot: 1=enable, 0=disable

@@ -144,10 +144,10 @@ class RunThread(QThread):
         self.m = m
         self.planexyz = planexyz
         self.pi = np.pi
-        self.a = 5.291772108e-11
+        #a0 = 5.291772108e-11
         self.A = np.sqrt(
             ((2 * l + 1) * factorial(l - abs(m))) / (4 * self.pi * factorial(l + abs(m))))  # Normalization constant
-        self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        self.r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
         self.plt = plt
         self.plt.fig.clear()
 
@@ -156,9 +156,9 @@ class RunThread(QThread):
             ax1 = self.plt.fig.add_subplot(1, 1, 1, aspect='equal')
 			#用plotax1变量来决定平面中是否应该有数值，是否plot
             plotax1 = True
-            r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+            r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
             theta = self.pi / 2
-            phi = np.linspace(0, 2 * self.pi, 181)
+            phi = np.linspace(0, 2 * self.pi, GRID_2D)
             Theta = theta
             R, Phi = np.meshgrid(r, phi)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -183,7 +183,7 @@ class RunThread(QThread):
 			#用plotax2变量来决定平面中是否应该有数值，是否plot
             plotax2 = True
             phi = self.pi / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -197,7 +197,7 @@ class RunThread(QThread):
             ax2.contour(y, z, f, levels=[-0.1 * limpsi, 0.1 * limpsi], colors=['red', 'blue'])
 
             phi = self.pi * 3 / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -220,7 +220,7 @@ class RunThread(QThread):
 			#用plotax3变量来决定平面中是否应该有数值，是否plot
             plotax3 = True
             phi = 0
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -234,7 +234,7 @@ class RunThread(QThread):
             ax3.contour(x, z, f, levels=[-0.1 * limpsi, 0.1 * limpsi], colors=['red', 'blue'])
 
             phi = self.pi
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R, Theta, Phi, self.n, self.l, self.m)
@@ -259,9 +259,9 @@ class RunThread(QThread):
             ax2 = self.plt.fig.add_subplot(2, 3, 2, aspect='equal')
             ax3 = self.plt.fig.add_subplot(2, 3, 3, aspect='equal')
             #    if self.planexyz==0 :
-            r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+            r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
             theta = self.pi / 2
-            phi = np.linspace(0, 2 * self.pi, 181)
+            phi = np.linspace(0, 2 * self.pi, GRID_2D)
             Theta = theta
             R, Phi = np.meshgrid(r, phi)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -281,7 +281,7 @@ class RunThread(QThread):
 
             #        if self.planexyz==1 :
             phi = self.pi / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -293,7 +293,7 @@ class RunThread(QThread):
             ax2.contour(y, z, f, levels=[-0.1 * limpsi, 0.1 * limpsi], colors=['red', 'blue'])
 
             phi = self.pi * 3 / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -312,7 +312,7 @@ class RunThread(QThread):
             #        if self.planexyz==2 :
             phi = -1.0E-9
 			#phi应该为0，但0可能出现不可预料的后果
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -324,7 +324,7 @@ class RunThread(QThread):
             ax3.contour(x, z, f, levels=[-0.1 * limpsi, 0.1 * limpsi], colors=['red', 'blue'])
 
             phi = self.pi
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             Phi = phi
             R, Theta = np.meshgrid(self.r, theta)
             f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -442,10 +442,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def start():
-    App = QApplication(sys.argv)
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()
 	
 if __name__ == "__main__":
     start()

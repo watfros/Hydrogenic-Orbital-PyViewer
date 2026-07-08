@@ -1,11 +1,10 @@
 import sys
-import os  # Library for interacting with the operating system
+import os
 os.environ['ETS_TOOLKIT'] = 'qt4'
-#Add code to suppress warnings
 import warnings
 warnings.filterwarnings('ignore')
-#End of code
-from wsgiref.validate import validator
+
+import matplotlib.pyplot as plts
 from mayavi import mlab
 from traits.api import HasTraits, Instance, Range, on_trait_change
 from traitsui.api import View, Item, Group
@@ -17,46 +16,31 @@ from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationTo
 from matplotlib.figure import Figure
 from math import factorial
 import numpy as np
-from calculate_psi import *
+from calculate_psi import *   # 导入原有函数
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtCore, QtGui, QtWidgets
-from matplotlib import rcParams
-from traits.api import HasTraits, Instance, on_trait_change
-from traitsui.api import View, Item
-from mayavi.core.ui.api import MayaviScene, MlabSceneModel, \
-    SceneEditor
 from pyface.qt import QtGui, QtCore
-#Add code to suppress warnings
-import warnings
-warnings.filterwarnings('ignore')
-#End of code
 
-config = {
-    "font.family": 'serif',
-    "mathtext.fontset": 'stix',
-    "font.serif": ['SimSun'],
-}
-rcParams.update(config)
-
+# -------- UI  "Calculate"----------
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1400,550)
+        MainWindow.resize(1280, 720)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../r2 (2)/ico.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/新前缀/ico.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.line = QtWidgets.QFrame(self.centralwidget)
-        self.line.setGeometry(QtCore.QRect(1150, 10, 31, 511))
+        self.line.setGeometry(QtCore.QRect(940, 10, 31, 701))
         self.line.setFrameShape(QtWidgets.QFrame.VLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
         self.horizontalLayoutWidget_2 = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(1170, 110, 221, 31))
+        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(990, 180, 221, 31))
         self.horizontalLayoutWidget_2.setObjectName("horizontalLayoutWidget_2")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_2)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
@@ -69,24 +53,47 @@ class Ui_MainWindow(object):
         self.lineEdit.setObjectName("lineEdit")
         self.horizontalLayout_2.addWidget(self.lineEdit)
         self.horizontalLayoutWidget_3 = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget_3.setGeometry(QtCore.QRect(1170, 200, 221, 31))
+        self.horizontalLayoutWidget_3.setGeometry(QtCore.QRect(990, 240, 221, 31))
         self.horizontalLayoutWidget_3.setObjectName("horizontalLayoutWidget_3")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_3)
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_4 = QtWidgets.QLabel(self.horizontalLayoutWidget_3)
         self.label_4.setObjectName("label_4")
-
         self.horizontalLayout_3.addWidget(self.label_4)
         self.lineEdit_2 = QtWidgets.QLineEdit(self.horizontalLayoutWidget_3)
         self.lineEdit_2.setMaximumSize(QtCore.QSize(243, 16777215))
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.horizontalLayout_3.addWidget(self.lineEdit_2)
+        self.horizontalLayoutWidget_4 = QtWidgets.QWidget(self.centralwidget)
+        self.horizontalLayoutWidget_4.setGeometry(QtCore.QRect(990, 300, 221, 31))
+        self.horizontalLayoutWidget_4.setObjectName("horizontalLayoutWidget_4")
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_4)
+        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.label_5 = QtWidgets.QLabel(self.horizontalLayoutWidget_4)
+        self.label_5.setObjectName("label_5")
+        self.horizontalLayout_4.addWidget(self.label_5)
+        self.lineEdit_3 = QtWidgets.QLineEdit(self.horizontalLayoutWidget_4)
+        self.lineEdit_3.setMaximumSize(QtCore.QSize(243, 16777215))
+        self.lineEdit_3.setObjectName("lineEdit_3")
+        self.horizontalLayout_4.addWidget(self.lineEdit_3)
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(1170, 340, 221, 41))
+        self.pushButton.setGeometry(QtCore.QRect(990, 440, 221, 41))
         self.pushButton.setObjectName("pushButton")
+        self.horizontalLayoutWidget_5 = QtWidgets.QWidget(self.centralwidget)
+        self.horizontalLayoutWidget_5.setGeometry(QtCore.QRect(990, 360, 221, 32))
+        self.horizontalLayoutWidget_5.setObjectName("horizontalLayoutWidget_5")
+        self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_5)
+        self.horizontalLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.label_6 = QtWidgets.QLabel(self.horizontalLayoutWidget_5)
+        self.label_6.setMinimumSize(QtCore.QSize(30, 30))
+        self.label_6.setMaximumSize(QtCore.QSize(90, 30))
+        self.label_6.setObjectName("label_6")
+        self.horizontalLayout_5.addWidget(self.label_6)
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 20, 1141, 491))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 20, 921, 681))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -101,66 +108,68 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Angular Part of Wave Function / Spherical Harmonic Function Y"))
-        self.label_3.setText(_translate("MainWindow", "(l)："))
-        self.label_4.setText(_translate("MainWindow", "(m)："))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Isosurface of Ψ for different Z"))
+        self.label_3.setText(_translate("MainWindow", "(n)："))
+        self.label_4.setText(_translate("MainWindow", "(l)："))
+        self.label_5.setText(_translate("MainWindow", "(m)："))
         self.pushButton.setText(_translate("MainWindow", "Calculate"))
 
+# -------- 后台线程（循环 Z，沿 X 轴平移，统一颜色，无节点面）----------
 class RunThread(QThread):
     msg = pyqtSignal(str)
 
-    def __init__(self, m, l, ):
+    def __init__(self, n, l, m):
         super(RunThread, self).__init__()
-        self.l = l
-        self.m = m
-        # self.planexyz = planexyz
-        # a0 = 5.291772108e-11
-        # self.A = np.sqrt(
-        #     ((2 * l + 1) * factorial(l - abs(m))) / (4 * np.pi * factorial(l + abs(m))))  # Normalization constant
-        # self.r = np.linspace(0.0, a0 * (5 * self.n ** 1.65), 181)
-        # self.mlab = mlab
-        # self.plt.axes.clear()
+        self.n, self.l, self.m = n, l, m
+        #a0 = 5.291772108e-11
 
     def run(self):
-        self.sph_harm()
+        mlab.clf()
 
-    def sph_harm(self):
-        mlab.clf(figure=None)
-        phi, theta = np.mgrid[0:2 * np.pi:GRID_3D*1j, 0:np.pi:GRID_3D*1j]
+        Rmax = a0 * (5 * self.n ** R_EXP)
+        x, y, z = np.mgrid[-Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j]
+        r, Theta, Phi = cart2sph(x, y, z)
 
-        s=calc_Y(theta,phi,self.l, self.m)
+        spacing = 2.0 * Rmax   # 相邻 Z 的间距
 
-        x, y, z = sph2cart(abs(s), theta, phi)
+        for idx, Z in enumerate(range(1, 6)):
+            shift_x = (Z - 3) * spacing
+            scalars = calc_psi(r, Theta, Phi, self.n, self.l, self.m, Z)
 
-        #If l=0, there is only one value in the actual result s, so it needs to be processed into an array
-        #print(s)
-        if self.l == 0:
-            arr = np.ones((GRID_3D, GRID_3D), dtype=float)
-            s = arr * s
-			
-		#After s / abs(s), only red and blue colors remain
-        mlab.mesh(x, y, z, scalars=s / abs(s))
+            maxpsi = np.abs(np.max(scalars))
+            minpsi = np.abs(np.min(scalars))
+            limpsi = maxpsi if self.n == 1 else np.minimum(maxpsi, minpsi)
+
+            # 绘制等值面，不指定 color，使用默认蓝色
+            if self.n == 1 and self.l == 0:
+                mlab.contour3d(x + shift_x, y, z, scalars,
+                               contours=[0.1 * limpsi],
+                               opacity=0.7,
+                               vmax=0.1 * limpsi, vmin=-0.1 * limpsi)
+            else:
+                mlab.contour3d(x + shift_x, y, z, scalars,
+                               contours=[-0.1 * limpsi, 0.1 * limpsi],
+                               opacity=0.7,
+                               vmax=0.1 * limpsi, vmin=-0.1 * limpsi)
+
+            # 标注 Z 值
+            label_pos_x = shift_x - 0.15 * Rmax #偏移一下，显示才能居中
+            label_pos_y = -0.8 * Rmax
+            label_pos_z = 0.0
+            mlab.text3d(label_pos_x, label_pos_y, label_pos_z, f'Z={Z}',
+                        scale=0.1*Rmax, color=(0,0,0))  # 黑色标签，清晰可见
+
         mlab.show()
 
+# -------- 主窗口（保持不变）----------
 class Visualization(HasTraits):
     scene = Instance(MlabSceneModel, ())
-
     @on_trait_change('scene.activated')
     def update_plot(self):
-        # This function is called when the view is opened. We don't
-        # populate the scene when the view is not yet open, as some
-        # VTK features require a GLContext.
-        # We can do normal mlab calls on the embedded scene.
-
-        # self.scene.mlab.pipeline.surface(self.scene.mlab.pipeline.open("cylinder.vtk"))
-        # self.scene.mlab.test_mesh()
         pass
-
-    # the layout of the dialog screated
     view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
                      height=200, width=300, show_label=False),
-                resizable=True  # We need this to resize with the parent widget
-                )
+                resizable=True)
 
 class MayaviQWidget(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -177,11 +186,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
-        # QApplication.setStyle(QStyleFactory.create('Fusion'))
-        self.lineEdit.setPlaceholderText("Non-negative integer")
-        self.lineEdit_2.setPlaceholderText("Integer")
-        self.mayavi_widget = MayaviQWidget()
-        self.gridLayout.addWidget(self.mayavi_widget)
+        self.lineEdit.setPlaceholderText("Positive integer")
+        self.lineEdit_2.setPlaceholderText("Non-negative integer")
+        self.lineEdit_3.setPlaceholderText("Integer")
+        self.cavas = MayaviQWidget()
+        self.gridLayout.addWidget(self.cavas)
         self.pushButton.clicked.connect(self.start_counting)
 
     def start_counting(self):
@@ -192,36 +201,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         l = 0
         m = 0
         s = True
-		#Check if l is an integer; if not, report error
         try:
-            l = int(self.lineEdit.text())
+            n = int(self.lineEdit.text())
         except:
-            self.msg('Prompt: (l) must be an integer')
+            self.msg('Prompt: (n) must be an integer')
             s = False
-
-		#Check if l is less than 0; if yes, report error
-        if s == True:
-            if (l < 0):
-                self.msg('Prompt: (l) must be greater than or equal to 0')
-                s = False
-		#Check if m is an integer; if not, report error
-        if s == True:
+        if s:
             try:
-                m = int(self.lineEdit_2.text())
+                l = int(self.lineEdit_2.text())
+            except:
+                self.msg('Prompt: (l) must be an integer')
+                s = False
+        if s:
+            try:
+                m = int(self.lineEdit_3.text())
             except:
                 self.msg('Prompt: (m) must be an integer')
                 s = False
-		#Check if m is within the valid range; if not, report error
-        if s == True:
-            if (m > l) or (m < -l):
-                self.msg('Prompt: m should be in the range [-l, l]')
-                s = False
-		#Validation completed, output parameters and start running
-        if s == True:
-            print(l)
-            print(m)
-            run = RunThread(m, l)
-            run.run()
+        if s:
+            if n <= 0:
+                self.msg('Prompt: (n) must be greater than 0')
+            elif l < 0 or l >= n:
+                self.msg('Prompt: (l) must >= 0 and < n')
+            elif (m > l) or (m < -l):
+                self.msg('Prompt: (m) must be in range [-l, l]')
+            else:
+                run = RunThread(n, l, m)
+                run.run()
 
     def msg(self, msg):
         QMessageBox.about(self, "Error", msg)

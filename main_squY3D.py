@@ -6,7 +6,6 @@ import warnings
 warnings.filterwarnings('ignore')
 #End of code
 from wsgiref.validate import validator
-import matplotlib.pyplot as polt
 from mayavi import mlab
 from traits.api import HasTraits, Instance, Range, on_trait_change
 from traitsui.api import View, Item, Group
@@ -30,6 +29,10 @@ from traitsui.api import View, Item
 from mayavi.core.ui.api import MayaviScene, MlabSceneModel, \
     SceneEditor
 from pyface.qt import QtGui, QtCore
+#Add code to suppress warnings
+import warnings
+warnings.filterwarnings('ignore')
+#End of code
 
 config = {
     "font.family": 'serif',
@@ -38,11 +41,10 @@ config = {
 }
 rcParams.update(config)
 
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("n MainWindow")
-        MainWindow.resize(1400, 550)
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(1400,550)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("../r2 (2)/ico.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -104,7 +106,6 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "(m)："))
         self.pushButton.setText(_translate("MainWindow", "Calculate"))
 
-
 class RunThread(QThread):
     msg = pyqtSignal(str)
 
@@ -112,30 +113,34 @@ class RunThread(QThread):
         super(RunThread, self).__init__()
         self.l = l
         self.m = m
-        self.pi = np.pi
-        self.ngrid = 100
+        # self.planexyz = planexyz
+        # a0 = 5.291772108e-11
+        # self.A = np.sqrt(
+        #     ((2 * l + 1) * factorial(l - abs(m))) / (4 * np.pi * factorial(l + abs(m))))  # Normalization constant
+        # self.r = np.linspace(0.0, a0 * (5 * self.n ** 1.65), 181)
+        # self.mlab = mlab
+        # self.plt.axes.clear()
 
     def run(self):
-        self.sph_harm_sq()
+        self.sph_harm()
 
-    def sph_harm_sq(self):
+    def sph_harm(self):
         mlab.clf(figure=None)
-        ngrid = 131
-        phi, theta = np.mgrid[0:2 * self.pi:131j, 0:self.pi:131j]
-        A = np.sqrt(((2 * self.l + 1) * factorial(self.l - abs(self.m))) / (4 * self.pi * factorial(self.l + abs(self.m))))
+        phi, theta = np.mgrid[0:2 * np.pi:GRID_3D*1j, 0:np.pi:GRID_3D*1j]
 
-        s = calc_Y(theta, phi, self.l, self.m)
+        s=calc_Y(theta,phi,self.l, self.m)
 
         x, y, z = sph2cart(s * s, theta, phi)
 
-        # Handle special case when l=0 (single value needs array conversion)
+        #If l=0, there is only one value in the actual result s, so it needs to be processed into an array
+        #print(s)
         if self.l == 0:
-            arr = np.ones((ngrid, ngrid), dtype=float)
+            arr = np.ones((GRID_3D, GRID_3D), dtype=float)
             s = arr * s
-
+			
+		#After s / abs(s), only red and blue colors remain
         mlab.mesh(x, y, z, scalars=s / abs(s))
         mlab.show()
-
 
 class Visualization(HasTraits):
     scene = Instance(MlabSceneModel, ())
@@ -145,14 +150,17 @@ class Visualization(HasTraits):
         # This function is called when the view is opened. We don't
         # populate the scene when the view is not yet open, as some
         # VTK features require a GLContext.
+        # We can do normal mlab calls on the embedded scene.
+
+        # self.scene.mlab.pipeline.surface(self.scene.mlab.pipeline.open("cylinder.vtk"))
+        # self.scene.mlab.test_mesh()
         pass
 
-    # Layout configuration for the visualization scene
+    # the layout of the dialog screated
     view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
                      height=200, width=300, show_label=False),
-                resizable=True  # Allow resizing with parent widget
+                resizable=True  # We need this to resize with the parent widget
                 )
-
 
 class MayaviQWidget(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -165,11 +173,11 @@ class MayaviQWidget(QtGui.QWidget):
         layout.addWidget(self.ui)
         self.ui.setParent(self)
 
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        # QApplication.setStyle(QStyleFactory.create('Fusion'))
         self.lineEdit.setPlaceholderText("Non-negative integer")
         self.lineEdit_2.setPlaceholderText("Integer")
         self.mayavi_widget = MayaviQWidget()
@@ -180,37 +188,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.validationNLM()
 
     def validationNLM(self):
+        n = 0
         l = 0
         m = 0
         s = True
-        # Check if l is an integer; if not, show error
+		#Check if l is an integer; if not, report error
         try:
             l = int(self.lineEdit.text())
         except:
             self.msg('Prompt: (l) must be an integer')
             s = False
 
-        # Check if l is non-negative; if not, show error
+		#Check if l is less than 0; if yes, report error
         if s == True:
             if (l < 0):
                 self.msg('Prompt: (l) must be greater than or equal to 0')
                 s = False
-
-        # Check if m is an integer; if not, show error
+		#Check if m is an integer; if not, report error
         if s == True:
             try:
                 m = int(self.lineEdit_2.text())
             except:
                 self.msg('Prompt: (m) must be an integer')
                 s = False
-
-        # Check if m is within valid range; if not, show error
+		#Check if m is within the valid range; if not, report error
         if s == True:
             if (m > l) or (m < -l):
                 self.msg('Prompt: m should be in the range [-l, l]')
                 s = False
-
-        # Validation completed, start calculation
+		#Validation completed, output parameters and start running
         if s == True:
             print(l)
             print(m)
@@ -220,12 +226,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def msg(self, msg):
         QMessageBox.about(self, "Error", msg)
 
-
 def start():
-    App = QApplication(sys.argv)
+    # 获取或创建 QApplication 实例（确保全局唯一）
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()   # 阻塞直到所有窗口关闭，但不调用 sys.exit
+    mlab.close(all=True)          # 窗口关闭后再清理一次
 
 if __name__ == "__main__":
     start()

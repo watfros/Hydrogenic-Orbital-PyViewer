@@ -126,17 +126,14 @@ class RunThread(QThread):
         self.l = l
         self.m = m
         self.pi = np.pi
-        self.a = 5.291772108e-11  # Bohr radius
+        #a0 = 5.291772108e-11  # Bohr radius
 
     def run(self):
         mlab.clf(figure=None)
-        # Calculate coordinates and wave function values (maintain original logic)
-        x, y, z = np.ogrid[-self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j, 
-                          -self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j,
-                          -self.a * (5 * self.n ** 1.65):self.a * (5 * self.n ** 1.65):168j]
+        # Calculate coordinates and wave function values
+        Rmax = a0 * (5 * self.n ** R_EXP)
+        x, y, z = np.mgrid[-Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j, -Rmax:Rmax:GRID_3D*1j]
         r, Theta, Phi = cart2sph(x, y, z)
-        x, y, z = sph2cart(r, Theta, Phi)  # Maintain dimensional consistency
-
         scalars = calc_psi(r, Theta, Phi, self.n, self.l, self.m)
 
         # Determine wave function value range
@@ -148,7 +145,7 @@ class RunThread(QThread):
         for nth_psi in range(1, 6):
             threshold = 0.1 * nth_psi * limpsi
             # X-axis offset value (staggered display along x-axis)
-            x_offset = self.a * (10 * nth_psi * self.n ** 1.65)
+            x_offset = Rmax * (2 * nth_psi)
             
             # Plot isosurfaces (modify x to x + x_offset)
             if self.n == 1 and self.l == 0:
@@ -187,13 +184,13 @@ class RunThread(QThread):
                     label_text = f"{abs_val:.3f}"
                 
                 # Fixed offset (adjust values based on actual display)
-                fixed_left_offset = self.a * self.n ** 1.65  # Fixed length offset
+                fixed_left_offset = Rmax/5  # Fixed length offset
                 mlab.text3d(
                     x_offset - fixed_left_offset,  # Fixed left offset
                     y.max() * 1.1,
                     0,
                     label_text,
-                    scale=0.5 * self.a * self.n ** 1.65,
+                    scale=Rmax/10,
                     color=(0, 0, 0)
                 )
         mlab.show()
@@ -285,9 +282,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def start():
-    App = QApplication(sys.argv)
+    # 获取或创建 QApplication 实例（确保全局唯一）
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()   # 阻塞直到所有窗口关闭，但不调用 sys.exit
+    mlab.close(all=True)          # 窗口关闭后再清理一次
+
 if __name__ == "__main__":
     start()

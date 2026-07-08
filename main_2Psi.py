@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # _*_ coding:utf-8 _*_
 import sys
-import os  # Library for interacting with the operating system
+import os
 os.environ['ETS_TOOLKIT'] = 'qt4'
-#添加代码,不显示warnings
 import warnings
 warnings.filterwarnings('ignore')
-#代码结束
 from mayavi import mlab
-from traits.api import HasTraits, Instance, Range, on_trait_change
+from traits.api import HasTraits, Instance
 import numpy as np
 from calculate_psi import *
 from PyQt5.QtCore import *
@@ -17,13 +15,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtCore, QtGui, QtWidgets
 from pyface.qt import QtGui, QtCore
-from traitsui.api import View, Item, Group
+from traitsui.api import View, Item
 from mayavi.core.ui.api import MayaviScene, SceneEditor, MlabSceneModel
-from math import factorial
-# noinspection PyUnresolvedReferences
-import vtkmodules.all as vtk
 from mayavi.core.api import PipelineBase
-from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 
 class Ui_MainWindow(object):
@@ -127,7 +121,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.lineEdit_6)
 
         # 添加posx', posy', posz', coef输入框
-        # posx'
         self.horizontalLayoutWidget_posx = QtWidgets.QWidget(self.centralwidget)
         self.horizontalLayoutWidget_posx.setGeometry(QtCore.QRect(990, 400, 221, 31))
         self.horizontalLayoutWidget_posx.setObjectName("horizontalLayoutWidget_posx")
@@ -142,7 +135,6 @@ class Ui_MainWindow(object):
         self.lineEdit_posx.setObjectName("lineEdit_posx")
         self.horizontalLayout_posx.addWidget(self.lineEdit_posx)
 
-        # posy'
         self.horizontalLayoutWidget_posy = QtWidgets.QWidget(self.centralwidget)
         self.horizontalLayoutWidget_posy.setGeometry(QtCore.QRect(990, 450, 221, 31))
         self.horizontalLayoutWidget_posy.setObjectName("horizontalLayoutWidget_posy")
@@ -157,7 +149,6 @@ class Ui_MainWindow(object):
         self.lineEdit_posy.setObjectName("lineEdit_posy")
         self.horizontalLayout_posy.addWidget(self.lineEdit_posy)
 
-        # posz'
         self.horizontalLayoutWidget_posz = QtWidgets.QWidget(self.centralwidget)
         self.horizontalLayoutWidget_posz.setGeometry(QtCore.QRect(990, 500, 221, 31))
         self.horizontalLayoutWidget_posz.setObjectName("horizontalLayoutWidget_posz")
@@ -172,7 +163,6 @@ class Ui_MainWindow(object):
         self.lineEdit_posz.setObjectName("lineEdit_posz")
         self.horizontalLayout_posz.addWidget(self.lineEdit_posz)
 
-        # coef
         self.horizontalLayoutWidget_coef = QtWidgets.QWidget(self.centralwidget)
         self.horizontalLayoutWidget_coef.setGeometry(QtCore.QRect(990, 550, 221, 31))
         self.horizontalLayoutWidget_coef.setObjectName("horizontalLayoutWidget_coef")
@@ -187,7 +177,6 @@ class Ui_MainWindow(object):
         self.lineEdit_coef.setObjectName("lineEdit_coef")
         self.horizontalLayout_coef.addWidget(self.lineEdit_coef)
 
-        # 计算按钮 - 放在coef下方
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(990, 600, 221, 41))
         self.pushButton.setObjectName("pushButton")
@@ -215,136 +204,14 @@ class Ui_MainWindow(object):
         self.label_l2.setText(_translate("MainWindow", "(l2)："))
         self.label_m2.setText(_translate("MainWindow", "(m2)："))
         self.pushButton.setText(_translate("MainWindow", "Calculate"))
-        # 新参数的标签文本
         self.label_posx.setText(_translate("MainWindow", "(posx)："))
         self.label_posy.setText(_translate("MainWindow", "(posy)："))
         self.label_posz.setText(_translate("MainWindow", "(posz)："))
         self.label_coef.setText(_translate("MainWindow", "(coef)："))
 
 
-class RunThread(QThread):
-    msg = pyqtSignal(str)
-
-    def __init__(self, n, l, m, n2, l2, m2, posx, posy, posz, coef):
-        super(RunThread, self).__init__()
-        self.n = n
-        self.l = l
-        self.m = m
-        self.n2 = n2
-        self.l2 = l2
-        self.m2 = m2
-        self.posx = posx
-        self.posy = posy
-        self.posz = posz
-        self.coef = coef
-        self.pi = np.pi
-        self.a = 5.291772108e-11
-        self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
-
-    def run(self):
-        mlab.clf(figure=None)
-        # 保存当前线程的参数引用
-        thread = self
-
-        class MyModel(HasTraits):
-            # 使用传入的参数作为初始值
-            posx = Range(0, 10, thread.posx)
-            posy = Range(0, 10, thread.posy)
-            posz = Range(0, 10, thread.posz)
-            coef = Range(-10, 10, thread.coef)
-            a = 5.291772108e-11
-            pi = np.pi
-            scene = Instance(MlabSceneModel, ())
-            plot = Instance(PipelineBase)
-
-            def __init__(self, **traits):
-                HasTraits.__init__(self,** traits)
-                x2 = x - self.posx * self.a * (n **1.65)
-                y2 = y - self.posy * self.a * (n** 1.65)
-                z2 = z - self.posz * self.a * (n **1.65)
-                r, Theta, Phi = cart2sph(x2, y2, z2)
-                scalars2 = calc_psi(r, Theta, Phi, n, l, m)
-                scalars = scalars1 + scalars2 * self.coef
-
-                maxpsi = np.abs(np.max(scalars))
-                minpsi = np.abs(np.min(scalars))
-                limpsi = maxpsi if n == 1 else np.minimum(maxpsi, minpsi)
-
-                if self.plot is None:
-                    if n == 1 and self.coef >= 0:
-                        self.plot = self.scene.mlab.contour3d(
-                            x, y, z, scalars, 
-                            contours=[0.1 * limpsi],
-                            transparent=False, 
-                            vmax=0.1 * limpsi, 
-                            vmin=0.001 * limpsi
-                        )
-                    else:
-                        self.plot = self.scene.mlab.contour3d(
-                            x, y, z, scalars, 
-                            contours=[-0.1 * limpsi, 0.1 * limpsi],
-                            transparent=False, 
-                            vmax=0.1 * limpsi, 
-                            vmin=-0.1 * limpsi
-                        )
-
-            @on_trait_change(['posx', 'posy', 'posz', 'coef'])
-            def update_plot(self):
-                x2 = x - self.posx * self.a * (n** 1.65)
-                y2 = y - self.posy * self.a * (n **1.65)
-                z2 = z - self.posz * self.a * (n** 1.65)
-                r, Theta, Phi = cart2sph(x2, y2, z2)
-                scalars2 = calc_psi(r, Theta, Phi, n, l, m)
-                scalars = scalars1 + scalars2 * self.coef
-
-                maxpsi = np.abs(np.max(scalars))
-                minpsi = np.abs(np.min(scalars))
-                limpsi = maxpsi if n == 1 else np.minimum(maxpsi, minpsi)
-
-                if self.plot is None:
-                    if n == 1 and self.coef >= 0:
-                        self.plot = self.scene.mlab.contour3d(
-                            x, y, z, scalars, 
-                            contours=[0.1 * limpsi],
-                            transparent=False, 
-                            vmax=0.1 * limpsi, 
-                            vmin=0.001 * limpsi
-                        )
-                    else:
-                        self.plot = self.scene.mlab.contour3d(
-                            x, y, z, scalars, 
-                            contours=[-0.1 * limpsi, 0.1 * limpsi],
-                            transparent=False, 
-                            vmax=0.1 * limpsi, 
-                            vmin=-0.1 * limpsi
-                        )
-                else:
-                    self.plot.mlab_source.set(x=x, y=y, z=z, scalars=scalars)
-
-
-        # 初始化网格
-        x, y, z = np.ogrid[
-            -self.a * (5 * self.n **1.65):self.a * (15 * self.n** 1.65):168j,
-            -self.a * (5 * self.n **1.65):self.a * (15 * self.n** 1.65):168j,
-            -self.a * (5 * self.n **1.65):self.a * (15 * self.n** 1.65):168j
-        ]
-        r, Theta, Phi = cart2sph(x, y, z)
-        x, y, z = sph2cart(r, Theta, Phi)
-        scalars1 = calc_psi(r, Theta, Phi, self.n, self.l, self.m)
-
-        n = self.n2
-        l = self.l2
-        m = self.m2
-        model = MyModel()
-
-
 class Visualization(HasTraits):
     scene = Instance(MlabSceneModel, ())
-
-    @on_trait_change('scene.activated')
-    def update_plot(self):
-        pass
-
     view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
                      height=200, width=300, show_label=False),
                 resizable=True)
@@ -372,33 +239,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_4.setPlaceholderText("Positive integer")
         self.lineEdit_5.setPlaceholderText("Non-negative integer")
         self.lineEdit_6.setPlaceholderText("Integer")
-        # 新参数的占位提示
         self.lineEdit_posx.setPlaceholderText("Position x(0-10)")
         self.lineEdit_posy.setPlaceholderText("Position y(0-10)")
         self.lineEdit_posz.setPlaceholderText("Position z(0-10)")
-        self.lineEdit_coef.setPlaceholderText("Coefficient (-1 or 1)")
+        self.lineEdit_coef.setPlaceholderText("Coeff (-10 or 10)")
+
         self.cavas = MayaviQWidget()
         self.gridLayout.addWidget(self.cavas)
         self.pushButton.clicked.connect(self.start_counting)
 
+        self.current_plot = None
+        self.current_node_plot = None
+
     def start_counting(self):
         self.validationNLM()
 
-    def var_init(self):
-        self.lb = QVTKRenderWindowInteractor(self)
-        self.gridLayout_G.addWidget(self.lb, 0, 0, 1, 1)
-        self.lb.GetRenderWindow().GetInteractor().Start()
-
     def validationNLM(self):
-        # 初始化参数
         params = {
-            'n': 0, 'l': 0, 'm': 0,
-            'n2': 0, 'l2': 0, 'm2': 0,
-            'posx': 0.0, 'posy': 0.0, 'posz': 0.0, 'coef': 1.0
+            'n': 1, 'l': 0, 'm': 0,
+            'n2': 1, 'l2': 0, 'm2': 0,
+            'posx': 5.0, 'posy': 0.0, 'posz': 0.0, 'coef': 1.0
         }
         s = True
 
-        # 验证整数参数
         try:
             params['n'] = int(self.lineEdit.text())
             params['n2'] = int(self.lineEdit_4.text())
@@ -410,10 +273,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.msg('Prompt: quantum number must be an integer')
             s = False
 
-        # 验证新添加的浮点参数
         if s:
             try:
-                params['posx'] = float(self.lineEdit_posx.text()) if self.lineEdit_posx.text() else 0.0
+                params['posx'] = float(self.lineEdit_posx.text()) if self.lineEdit_posx.text() else 5.0
                 params['posy'] = float(self.lineEdit_posy.text()) if self.lineEdit_posy.text() else 0.0
                 params['posz'] = float(self.lineEdit_posz.text()) if self.lineEdit_posz.text() else 0.0
                 params['coef'] = float(self.lineEdit_coef.text()) if self.lineEdit_coef.text() else 1.0
@@ -421,7 +283,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.msg('Prompt: positions and coefficient must be numbers')
                 s = False
 
-        # 验证参数范围
         if s:
             if params['n'] <= 0:
                 self.msg('Prompt: (n1) must be greater than 0')
@@ -454,25 +315,90 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.msg('Prompt: coef should be in the range [-10, 10]')
                 s = False
 
-        # 所有验证通过，启动计算线程
         if s:
-            run = RunThread(
-                params['n'], params['l'], params['m'],
-                params['n2'], params['l2'], params['m2'],
-                params['posx'], params['posy'], params['posz'], params['coef']
+            self.plot_superposition(params)
+
+    def plot_superposition(self, params):
+        scene = self.cavas.visualization.scene
+        mlab.figure(figure=scene.mayavi_scene)
+        scene.mlab.clf()
+
+        #a0 = 5.291772108e-11
+        n1, l1, m1 = params['n'], params['l'], params['m']
+        n2, l2, m2 = params['n2'], params['l2'], params['m2']
+        posx, posy, posz = params['posx'], params['posy'], params['posz']
+        coef = params['coef']
+
+        Rmax = a0 * (5 * n1 ** R_EXP)
+        x, y, z = np.mgrid[-2*Rmax:2*Rmax:GRID_3D*1j, -2*Rmax:2*Rmax:GRID_3D*1j, -2*Rmax:2*Rmax:GRID_3D*1j]
+        dx = posx * Rmax/5
+        dy = posy * Rmax/5
+        dz = posz * Rmax/5
+        x1 = x - 0.5*dx
+        y1 = y - 0.5*dy
+        z1 = z - 0.5*dz
+        r1, theta1, phi1 = cart2sph(x1, y1, z1)
+        psi1 = calc_psi(r1, theta1, phi1, n1, l1, m1)
+        x2 = x + 0.5*dx
+        y2 = y + 0.5*dy
+        z2 = z + 0.5*dz
+        r2, theta2, phi2 = cart2sph(x2, y2, z2)
+        psi2 = calc_psi(r2, theta2, phi2, n2, l2, m2)
+
+        psi = psi1 + coef * psi2
+
+        maxpsi = np.abs(np.max(psi))
+        minpsi = np.abs(np.min(psi))
+        limpsi = maxpsi if n1 == 1 else min(maxpsi, minpsi)
+
+        if n1 == 1 and coef >= 0:
+            scene.mlab.contour3d(
+                x, y, z, psi,
+                contours=[0.1 * limpsi],
+                transparent=True,
+                vmax=0.1 * limpsi,
+                vmin=0.001 * limpsi
             )
-            run.run()
+        else:
+            scene.mlab.contour3d(
+                x, y, z, psi,
+                contours=[-0.1 * limpsi, 0.1 * limpsi],
+                transparent=True,
+                vmax=0.1 * limpsi,
+                vmin=-0.1 * limpsi
+            )
+        # 创建新的节面（半透明灰色）
+        if np.min(psi) <= 0 <= np.max(psi):
+            scene.mlab.contour3d(
+                x, y, z, psi,
+                contours=[0.0],
+                opacity=0.2,
+                transparent=True,
+                color=(0.5, 0.5, 0.0)
+            )
+
+        # ========== 新增：标记两个波函数的中心位置 ==========
+        # 第一个波函数
+        scene.mlab.points3d(-0.5*dx, -0.5*dy, -0.5*dz, scale_factor= Rmax*0.08,
+                            color=(0, 0, 0), opacity=0.8, resolution=10)
+        # 第二个波函数
+        scene.mlab.points3d(0.5*dx, 0.5*dy, 0.5*dz, scale_factor= Rmax*0.08,
+                            color=(0, 0, 0), opacity=0.8, resolution=10)
+
 
     def msg(self, msg):
         QMessageBox.about(self, "Error", msg)
 
 
 def start():
-    App = QApplication(sys.argv)
+    # 获取或创建 QApplication 实例（确保全局唯一）
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
-
+    app.exec_()   # 阻塞直到所有窗口关闭，但不调用 sys.exit
+    mlab.close(all=True)          # 窗口关闭后再清理一次
 
 if __name__ == "__main__":
     start()

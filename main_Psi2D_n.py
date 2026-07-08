@@ -127,10 +127,10 @@ class RunThread(QThread):
         self.m = m
         # self.planexyz = planexyz
         self.pi = np.pi
-        self.a = 5.291772108e-11
+        #a0 = 5.291772108e-11
         self.A = np.sqrt(
             ((2 * l + 1) * factorial(l - abs(m))) / (4 * self.pi * factorial(l + abs(m))))  # Normalization constant
-        self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        self.r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
         self.plt = plt
         self.plt.axes.clear()
 
@@ -142,15 +142,15 @@ class RunThread(QThread):
         self.plt.axes.spines['top'].set_visible(False)
         self.plt.axes.spines['bottom'].set_visible(False)
         A = np.sqrt(((2 * self.l + 1) * factorial(self.l - abs(self.m))) / (4 * self.pi * factorial(self.l + abs(self.m))))  # Normalization constant
-        r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
 
         ax1 = self.plt.fig.add_subplot(2, 3, 1, aspect='equal')
         ax2 = self.plt.fig.add_subplot(2, 3, 2, aspect='equal')
         ax3 = self.plt.fig.add_subplot(2, 3, 3, aspect='equal')
         # if planexyz==0 :
-        r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        r = np.linspace(0.0, a0 * (5 * self.n ** R_EXP), GRID_2D)
         theta = self.pi / 2
-        phi = np.linspace(0, 2 * self.pi, 181)
+        phi = np.linspace(0, 2 * self.pi, GRID_2D)
         Theta = theta
         R, Phi = np.meshgrid(r, phi)
         f = calc_psi_prof(R,Theta,Phi,self.n,self.l,self.m)
@@ -173,7 +173,7 @@ class RunThread(QThread):
 
         # if planexyz==1 :
         phi = self.pi / 2
-        theta = np.linspace(0, self.pi, 181)
+        theta = np.linspace(0, self.pi, GRID_2D)
         Phi = phi
         R, Theta = np.meshgrid(r, theta)
         f = calc_psi_prof(R, Theta, Phi, self.n, self.l, self.m)
@@ -188,7 +188,7 @@ class RunThread(QThread):
                     colors=['black'])
 
         phi = self.pi * 3 / 2
-        theta = np.linspace(0, self.pi, 181)
+        theta = np.linspace(0, self.pi, GRID_2D)
         Phi = phi
         R, Theta = np.meshgrid(r, theta)
         f = calc_psi_prof(R, Theta, Phi, self.n, self.l, self.m)
@@ -209,7 +209,7 @@ class RunThread(QThread):
         ax2.set_title('profile of Psi_yz', fontsize=14, fontweight='bold')
         # if planexyz==2 :
         phi = 0
-        theta = np.linspace(0, self.pi, 181)
+        theta = np.linspace(0, self.pi, GRID_2D)
         Phi = phi
         R, Theta = np.meshgrid(r, theta)
         f = calc_psi_prof(R, Theta, Phi, self.n, self.l, self.m)
@@ -224,7 +224,7 @@ class RunThread(QThread):
                     colors=['black'])
 
         phi = self.pi
-        theta = np.linspace(0, self.pi, 181)
+        theta = np.linspace(0, self.pi, GRID_2D)
         Phi = phi
         R, Theta = np.meshgrid(r, theta)
         f = calc_psi_prof(R, Theta, Phi, self.n, self.l, self.m)
@@ -334,10 +334,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def start():
-    App = QApplication(sys.argv)
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()
 
 if __name__ == "__main__":
     start()

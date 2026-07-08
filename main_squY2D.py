@@ -133,13 +133,13 @@ class RunThread(QThread):
         print(self.m)
         self.planexyz = planexyz
         self.pi = np.pi
-        self.a = 5.291772108e-11
+        #a0 = 5.291772108e-11
         self.A = np.sqrt(
             ((2 * l + 1) * factorial(l - abs(m))) / (4 * self.pi * factorial(l + abs(m))))  # Normalization constant
-        # self.r = np.linspace(0.0, self.a * (5 * self.n ** 1.65), 181)
+        # self.r = np.linspace(0.0, a0 * (5 * self.n ** 1.65), 181)
         self.plt = plt
         self.plt.fig.clear()
-        self.ngrid = 100
+        #self.ngrid = 181
 
     def run(self):
         # print(self.m)
@@ -163,7 +163,7 @@ class RunThread(QThread):
             ax1 = self.plt.fig.add_subplot(1, 1, 1, aspect='equal')
 
             theta = self.pi / 2
-            phi = np.linspace(0, 2 * self.pi, 181)
+            phi = np.linspace(0, 2 * self.pi, GRID_2D)
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
             rholow = np.ma.masked_where(rho < 0.0, rho)
@@ -180,7 +180,7 @@ class RunThread(QThread):
         if self.planexyz == 1:  # 需要分phi = pi/2 or pi*3/2
             ax2 = self.plt.fig.add_subplot(1, 1, 1, aspect='equal')
             phi = self.pi / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
 
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
@@ -202,7 +202,7 @@ class RunThread(QThread):
             ax2.plot(y4, z4, color='blue')
 
             phi = self.pi * 3 / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
 
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
@@ -236,7 +236,7 @@ class RunThread(QThread):
             ax3 = self.plt.fig.add_subplot(1, 1, 1, aspect='equal')
             # if planexyz==2 or planexyz==3:
             phi = 0
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
             rholow = np.ma.masked_where(rho < 0.0, rho)
@@ -257,7 +257,7 @@ class RunThread(QThread):
             ax3.plot(x6, z6, color='blue')
 
             phi = self.pi
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
             rholow = np.ma.masked_where(rho < 0.0, rho)
@@ -287,7 +287,7 @@ class RunThread(QThread):
             ax3 = self.plt.fig.add_subplot(2, 3, 3, aspect='equal')
 
             theta = self.pi / 2
-            phi = np.linspace(0, 2 * self.pi, 181)
+            phi = np.linspace(0, 2 * self.pi, GRID_2D)
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
             rholow = np.ma.masked_where(rho < 0.0, rho)
@@ -300,7 +300,7 @@ class RunThread(QThread):
 
             # if planexyz==1 or planexyz==3:#需要分phi = pi/2 or pi*3/2
             phi = self.pi / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
 
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
@@ -322,7 +322,7 @@ class RunThread(QThread):
             ax2.plot(y4, z4, color='blue')
 
             phi = self.pi * 3 / 2
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
 
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
@@ -345,7 +345,7 @@ class RunThread(QThread):
 
             # if planexyz==2 or planexyz==3:
             phi = 0
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
             rholow = np.ma.masked_where(rho < 0.0, rho)
@@ -366,7 +366,7 @@ class RunThread(QThread):
             ax3.plot(x6, z6, color='blue')
 
             phi = self.pi
-            theta = np.linspace(0, self.pi, 181)
+            theta = np.linspace(0, self.pi, GRID_2D)
             rho = calc_Y(theta,phi,self.l,self.m)
             # x,y,z = sph2cart(abs(rho),theta,phi)
             rholow = np.ma.masked_where(rho < 0.0, rho)
@@ -482,10 +482,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.about(self, "error", msg)
 
 def start():
-    App = QApplication(sys.argv)
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     ex = MainWindow()
     ex.show()
-    sys.exit(App.exec_())
+    app.exec_()
 
 if __name__ == "__main__":
     start()
